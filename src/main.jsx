@@ -1,0 +1,16 @@
+import React,{useState} from 'react';import{createRoot}from'react-dom/client';import{Canvas}from'@react-three/fiber';import{OrbitControls,Text}from'@react-three/drei';import'./style.css';
+
+const blocks=[
+['Cortex-M4','CPU • 168 MHz • FPU/NVIC',0,0,'#e35d5b'],
+['FLASH','Up to 1 MB',3,1,'#3b9ed8'],['SRAM','112 KB + 16 KB',3,-1,'#35b9ce'],
+['AHB BUS','168 MHz bus matrix',0,-2,'#ed9b3a'],
+['DMA1/2','8 streams each',-3,-2,'#49ae69'],['GPIO A-I','Up to 140 I/O',4,-2,'#e9942e'],
+['TIMERS','TIM1-14 • PWM',-3,-4,'#70b94b'],['ADC 1/2/3','12-bit ADC',-1,-5,'#4598d0'],
+['DAC 1/2','12-bit DAC',1,-5,'#d9a632'],['USART/UART','1/2/3/4/5/6',3,-4,'#9162c1'],
+['SPI / I2C','SPI1-3 • I2C1-3',5,-4,'#7651aa'],['CAN','bxCAN1/2',5,-5,'#8652ad'],
+['USB OTG','FS / HS',-5,0,'#8155bb'],['ETH MAC','10/100',-5,1.5,'#30aab5'],
+['FSMC','External memory',5,1,'#358ec3'],['RCC / POWER','Clock • reset • power',0,-6.5,'#5dbac7']
+];
+function Block({b,explode,selected,setSelected}){let[n,d,x,z,c]=b;let y=.35+explode*(Math.abs(z)*.32+1);return <group position={[x,y,z]} onClick={e=>{e.stopPropagation();setSelected(n)}}><mesh scale={selected&&selected!==n?.7:1}><boxGeometry args={[2.4,.65,1.1]}/><meshStandardMaterial color={c} transparent opacity={selected&&selected!==n?.22:1}/></mesh><Text position={[0,.38,0]} rotation={[-Math.PI/2,0,0]} fontSize={.25} color="white">{n}</Text></group>}
+function Chip(){return <group position={[0,-.2,0]}><mesh><boxGeometry args={[12,.5,10]}/><meshStandardMaterial color="#171a1d" metalness={.5} roughness={.45}/></mesh><Text position={[0,.27,0]} rotation={[-Math.PI/2,0,0]} fontSize={.7} color="#eee">STM32F40xxx</Text></group>}
+function App(){const[e,setE]=useState(.5),[s,setS]=useState(null);let info=blocks.find(b=>b[0]===s);return <main><header><b>STM32 STUDIO</b><span>Interactive STM32F40xxx Architecture</span></header><section><aside><h2>STM32F40xxx</h2><p>Interactive architectural exploded view based on the STM32F40xxx functional block diagram.</p><label>EXPLODE <strong>{Math.round(e*100)}%</strong></label><input type="range" min="0" max="1" step=".01" value={e} onChange={x=>setE(+x.target.value)}/><button onClick={()=>{setE(0);setS(null)}}>Reset assembly</button><h3>COMPONENTS</h3>{blocks.map(b=><button className={s===b[0]?'active':''} onClick={()=>setS(b[0])}>{b[0]}</button>)}</aside><div className="scene"><Canvas camera={{position:[11,12,15],fov:45}}><ambientLight intensity={1.4}/><directionalLight position={[5,12,8]} intensity={2}/><Chip/>{blocks.map((b,i)=><Block key={i} b={b} explode={e} selected={s} setSelected={setS}/>)}<OrbitControls makeDefault/></Canvas><div className="hint">Drag to rotate • Scroll to zoom • Click a block to isolate</div></div><aside className="right"><h3>{s||'SELECT A COMPONENT'}</h3>{info?<><p>{info[1]}</p><p className="note">Architectural visualization — blocks show functional relationships, not physical transistor placement on the silicon die.</p></>:<p>Choose a functional block in the 3D model or component list.</p>}</aside></section></main>}createRoot(document.getElementById('root')).render(<App/>);
